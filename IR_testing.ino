@@ -1,6 +1,17 @@
 
 #define arraySize 500
 #define OCR1A_val 2000
+//  The following are decimal values of the 16 bit data signals emmitted by each button from 0 to 9
+#define B1 2057
+#define B2 34953
+#define B3 18505
+#define B4 51401
+#define B5 10281
+#define B6 43177
+#define B7 26729
+#define B8 59625
+#define B9 6169
+#define B0 39065
 
 int timerStatus = 0;
 int doubleCheck = 3;
@@ -10,6 +21,21 @@ uint8_t startOfTransmission = 0;
 int endOfTransmission = 0;
 uint8_t dataArray[48];  // 32 address bits, 16 data bits
 uint8_t infraArray[arraySize];
+
+void flashLED() {
+  digitalWrite(11, HIGH);
+  delay(250);
+  digitalWrite(11, LOW);
+  delay(250);
+}
+
+uint16_t extractData() {
+  uint16_t data = 0;
+  for (int i = 32; i < 48; i++) {
+    data += dataArray[i] << (15 - (i - 32));
+  }
+  return data;
+}
 
 bool addressComparison() {
 
@@ -118,8 +144,8 @@ void setup() {
   pinMode(11, OUTPUT);
   pinMode(10, INPUT);
 
-  Serial.begin(9600);
-  while (!Serial) ;
+  // Serial.begin(9600);
+  // while (!Serial) ;
 
   timerInit();
 
@@ -159,19 +185,81 @@ void loop() {
 
     convertSignalToData();
 
-    // printDataArray();
+    uint16_t data = extractData();
 
-    if (addressComparison()) {
-      Serial.println("Address matches");
-    } else {
-      Serial.println("No address match");
+    switch (data) {
+      case B1:
+        flashLED();
+        break;
+
+      case B2:
+        for (int i = 0; i < 2; i++) {
+          flashLED();
+        }
+        break;
+
+      case B3:
+        for (int i = 0; i < 3; i++) {
+          flashLED();
+        }
+        break;
+
+      case B4:
+        for (int i = 0; i < 4; i++) {
+          flashLED();
+        }
+        break;
+
+      case B5:
+        for (int i = 0; i < 5; i++) {
+          flashLED();
+        }
+        break;
+
+      case B6:
+        for (int i = 0; i < 6; i++) {
+          flashLED();
+        }
+        break;
+
+      case B7:
+        for (int i = 0; i < 7; i++) {
+          flashLED();
+        }
+        break;
+
+      case B8:
+        for (int i = 0; i < 8; i++) {
+          flashLED();
+        }
+        break;
+
+      case B9:
+        for (int i = 0; i < 9; i++) {
+          flashLED();
+        }
+        break;
+
+      default:
+        digitalWrite(11, HIGH);
+        delay(500);
+        digitalWrite(11, LOW);
+        delay(500);
+        break;
     }
 
-
-    // for (int k = 0; k < arraySize; k++) {
-    //   Serial.print(infraArray[k]);
-    //   Serial.print(" ");
-    // }
+    timerStatus = 0;
+    doubleCheck = 3;
+    voltage = 0;
+    j = 0;
+    startOfTransmission = 0;
+    endOfTransmission = 0;
+    for (int i = 0; i < 48; i ++) {
+      dataArray[i] = 0;
+    }
+    for (int i = 0; i < arraySize; i++) {
+      infraArray[i] = 0;
+    }
 
   }
 
