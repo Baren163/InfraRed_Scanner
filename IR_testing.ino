@@ -9,33 +9,64 @@ volatile int sensorValue;
 volatile uint8_t voltage = 0;
 volatile int j = 0;
 volatile float counter = 0;
-uint8_t dataArray[48];
+uint8_t startOfTransmission = 0;
+uint8_t endOfTransmission = 0;
+uint8_t dataArray[50];
 uint8_t infraArray[arraySize];
 
+void formatInfraArray() {
 
-void convertSignalToData(uint8_t signalArray[500]) {
+  uint8_t leadingLogicChangeNum = 0;
 
+  infraArray[0] = 0;
+  infraArray[1] = 0;
 
-  uint8_t p = 0;
+  for (int i = 0; i < 500; i++) {
 
-  for (int i = 1; i < 500; i++) {
+    if (infraArray[i] != infraArray[i - 1]) {
+      leadingLogicChangeNum++;
 
-    if (signalArray[i] == 1) {
-      numOnes++;
-    } else {
-      numZeros++
+      if (leadingLogicChangeNum == 2) {
+
+        startOfTransmission = i;
+        break;
+
+      }
+
     }
 
-    if (signalArray[i] != signalArray[i - 1]) {
+  }
+
+  for (int i = 499; i > 0; i--) {
+    if (infraArray[i] != infraArray[i + 1]) {
+      endOfTransmission = i;
+      break;
+    }
+  }
+
+}
+
+void convertSignalToData() {
+
+  formatInfraArray();
+
+  uint8_t numLogicChange = 0;
+  uint8_t numZeros = 0;
+  uint8_t numOnes = 0;
+  uint8_t p = 0;
+
+  for (int i = startOfTransmission; i < endOfTransmission; i++) {
+
+    if ((infraArray[i] != infraArray[i - 1]) && (i > 0)) {
       numLogicChange++;
     }
 
-    if ((numLogicChange == 2) && (signalArray[i] != signalArray[i + 1])) {
+    if (numLogicChange == 2) {
       if ((numOnes - numZeros) > 3) {
         dataArray[p] = 1;
         p++;
       } else {
-        dataArrat[p] = 0;
+        dataArray[p] = 0;
         p++;
       }
 
@@ -45,8 +76,20 @@ void convertSignalToData(uint8_t signalArray[500]) {
 
     }
 
+    if (infraArray[i] == 1) {
+      numOnes++;
+    } else {
+      numZeros++;
+    }
+
   }
 
+}
+
+void printDataArray() {
+  for (int i = 0; i < 50; i++) {
+    Serial.print(dataArray[i]);
+  }
 }
 
 void timerInit() {
@@ -118,10 +161,14 @@ void loop() {
     TCCR1B &= ~(1 << CS10); // Stop timer
     doubleCheck = 1;
 
-    for (int k = 0; k < arraySize; k++) {
-      Serial.print(infraArray[k]);
-      Serial.print(" ");
-    }
+    convertSignalToData();
+
+    printDataArray();
+
+    // for (int k = 0; k < arraySize; k++) {
+    //   Serial.print(infraArray[k]);
+    //   Serial.print(" ");
+    // }
 
   }
 
