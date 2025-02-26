@@ -11,7 +11,7 @@ volatile int j = 0;
 volatile float counter = 0;
 uint8_t startOfTransmission = 0;
 int endOfTransmission = 0;
-uint8_t dataArray[70];
+uint8_t dataArray[48];  // 32 address bits, 16 data bits
 uint8_t infraArray[arraySize];
 
 void formatInfraArray() {
@@ -57,7 +57,7 @@ void convertSignalToData() {
 
   for (int i = startOfTransmission; i < endOfTransmission; i++) {
 
-    if ((infraArray[i] != infraArray[i - 1]) && (i > 0)) {
+    if ((infraArray[i] != infraArray[i - 1]) && (i > startOfTransmission)) {
       numLogicChange++;
     }
 
@@ -167,9 +167,12 @@ void loop() {
     TCCR1B &= ~(1 << CS10); // Stop timer
     doubleCheck = 1;
 
+    Serial.println(" ");
+
     convertSignalToData();
 
     printDataArray();
+
 
     // for (int k = 0; k < arraySize; k++) {
     //   Serial.print(infraArray[k]);
