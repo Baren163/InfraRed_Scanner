@@ -16,7 +16,7 @@ uint8_t infraArray[arraySize];
 void timerInit() {
   TCCR1A = 0;
 
-  OCR1A = 200;
+  OCR1A = 750;
 
   TIMSK1 = (1 << OCIE1A);
 
@@ -57,7 +57,7 @@ void loop() {
 
     if (voltage == 0) {
       timerStatus = 1;
-      OCR1A = 200;
+      OCR1A = 750;
       TCCR1B = (1 << WGM12) | (1 << CS10);  // Start timer
     }
 
