@@ -10,8 +10,8 @@ volatile uint8_t voltage = 0;
 volatile int j = 0;
 volatile float counter = 0;
 uint8_t startOfTransmission = 0;
-uint8_t endOfTransmission = 0;
-uint8_t dataArray[50];
+int endOfTransmission = 0;
+uint8_t dataArray[70];
 uint8_t infraArray[arraySize];
 
 void formatInfraArray() {
@@ -37,7 +37,7 @@ void formatInfraArray() {
 
   }
 
-  for (int i = 499; i > 0; i--) {
+  for (int i = 498; i > 0; i--) {
     if (infraArray[i] != infraArray[i + 1]) {
       endOfTransmission = i;
       break;
@@ -87,7 +87,13 @@ void convertSignalToData() {
 }
 
 void printDataArray() {
-  for (int i = 0; i < 50; i++) {
+  Serial.print("SOT: ");
+  Serial.print(startOfTransmission);
+  Serial.println(" ");
+  Serial.print("EOT: ");
+  Serial.print(endOfTransmission);
+  Serial.println(" ");
+  for (int i = 0; i < 70; i++) {
     Serial.print(dataArray[i]);
   }
 }
