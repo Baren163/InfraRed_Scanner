@@ -1,7 +1,6 @@
-#include <Arduino_BuiltIn.h>
 
-
-#define arraySize 2000
+#define arraySize 500
+#define OCR1A_val 2000
 
 int timerStatus = 0;
 int doubleCheck = 3;
@@ -10,13 +9,50 @@ volatile int sensorValue;
 volatile uint8_t voltage = 0;
 volatile int j = 0;
 volatile float counter = 0;
-
+uint8_t dataArray[48];
 uint8_t infraArray[arraySize];
+
+
+void convertSignalToData(uint8_t signalArray[500]) {
+
+
+  uint8_t p = 0;
+
+  for (int i = 1; i < 500; i++) {
+
+    if (signalArray[i] == 1) {
+      numOnes++;
+    } else {
+      numZeros++
+    }
+
+    if (signalArray[i] != signalArray[i - 1]) {
+      numLogicChange++;
+    }
+
+    if ((numLogicChange == 2) && (signalArray[i] != signalArray[i + 1])) {
+      if ((numOnes - numZeros) > 3) {
+        dataArray[p] = 1;
+        p++;
+      } else {
+        dataArrat[p] = 0;
+        p++;
+      }
+
+      numLogicChange = 0;
+      numOnes = 0;
+      numZeros = 0;
+
+    }
+
+  }
+
+}
 
 void timerInit() {
   TCCR1A = 0;
 
-  OCR1A = 750;
+  OCR1A = OCR1A_val;
 
   TIMSK1 = (1 << OCIE1A);
 
@@ -57,7 +93,7 @@ void loop() {
 
     if (voltage == 0) {
       timerStatus = 1;
-      OCR1A = 750;
+      OCR1A = OCR1A_val;
       TCCR1B = (1 << WGM12) | (1 << CS10);  // Start timer
     }
 
@@ -90,36 +126,3 @@ void loop() {
   }
 
 }
-
-  // // print out the value you read:
-  // Serial.print(voltage);
-  // Serial.print(" ");
-
-  // if ((voltage < 5) && (coolDown == 0)) {
-
-  //   if (doubleCheck == 0) {
-
-  //     coolDown = 2000;
-
-  //     if (digitalRead(12)) {
-  //       digitalWrite(12, LOW);
-  //     } else {
-  //       digitalWrite(12, HIGH);
-  //     }
-
-  //     doubleCheck = 3;
-
-  //   } else {
-  //     doubleCheck--;
-  //   }
-
-  // }
-
-  // if (coolDown > 0) {
-  //   coolDown--;
-  // }
-
-
-  // digitalWrite(11, HIGH);
-
-
