@@ -4,15 +4,25 @@
 
 int timerStatus = 0;
 int doubleCheck = 3;
-int countDown = 50;
-volatile int sensorValue;
 volatile uint8_t voltage = 0;
 volatile int j = 0;
-volatile float counter = 0;
 uint8_t startOfTransmission = 0;
 int endOfTransmission = 0;
 uint8_t dataArray[48];  // 32 address bits, 16 data bits
 uint8_t infraArray[arraySize];
+
+bool addressComparison() {
+
+  uint32_t myAddress = 1074004224;  // 32 bit address, 01000000000001000000000100000000
+
+  for (int i = 0; i < 32; i++) {
+    if (dataArray[i] != ((myAddress >> (31 - i)) & 1)) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 void formatInfraArray() {
 
@@ -87,11 +97,6 @@ void convertSignalToData() {
 }
 
 void printDataArray() {
-  Serial.print("SOT: ");
-  Serial.print(startOfTransmission);
-  Serial.println(" ");
-  Serial.print("EOT: ");
-  Serial.print(endOfTransmission);
   Serial.println(" ");
   for (int i = 0; i < 70; i++) {
     Serial.print(dataArray[i]);
@@ -125,7 +130,6 @@ void setup() {
 ISR(TIMER1_COMPA_vect) {
 
   voltage = digitalRead(10);
-  // voltage = sensorValue * (5.0 / 1023.0);
 
   if (j < arraySize) {
     infraArray[j] = voltage;
@@ -138,7 +142,6 @@ void loop() {
   if (timerStatus == 0) {
 
     voltage = digitalRead(10);
-    // voltage = sensorValue * (5.0 / 1023.0);
 
     if (voltage == 0) {
       timerStatus = 1;
@@ -148,30 +151,21 @@ void loop() {
 
   }
 
-  // if (number == 1) {
-
-  //   if (voltage == 5) {
-  //     countDown--;
-  //   } else {
-  //     countDown = 50;
-  //   }
-
-  //   if (countDown == 0) {
-  //     TCCR1B &= ~(1 << CS10); // Stop timer
-  //   }
-
-  // }
 
   if ((j == arraySize) && (doubleCheck == 3)) {
 
     TCCR1B &= ~(1 << CS10); // Stop timer
     doubleCheck = 1;
 
-    Serial.println(" ");
-
     convertSignalToData();
 
-    printDataArray();
+    // printDataArray();
+
+    if (addressComparison()) {
+      Serial.println("Address matches");
+    } else {
+      Serial.println("No address match");
+    }
 
 
     // for (int k = 0; k < arraySize; k++) {
